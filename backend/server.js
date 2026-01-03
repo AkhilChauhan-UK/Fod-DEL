@@ -11,20 +11,34 @@ import orderRouter from "./routes/orderRoute.js";
 const app = express();
 const port = process.env.PORT || 4000;
 
-// ✅ CORS FIX (IMPORTANT)
+// ✅ DYNAMIC CORS (IMPORTANT FIX)
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://fod-del.vercel.app"
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "http://localhost:5174",
-    "https://fod-del.vercel.app",
-    "https://fod-del-admin.vercel.app"
-  ],
+  origin: function (origin, callback) {
+    // allow requests with no origin (Postman, curl)
+    if (!origin) return callback(null, true);
+
+    // allow all Vercel preview deployments
+    if (
+      allowedOrigins.includes(origin) ||
+      origin.endsWith(".vercel.app")
+    ) {
+      return callback(null, true);
+    }
+
+    return callback(new Error("Not allowed by CORS"));
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "token"],
   credentials: true
 }));
 
-// ⚠️ Preflight fix
+// preflight fix
 app.options("*", cors());
 
 app.use(express.json());
@@ -32,13 +46,12 @@ app.use(express.json());
 // DB
 connectDB();
 
-// Routes
+// routes
 app.use("/api/food", foodRouter);
 app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 
-// Static (Render OK)
 app.use("/images", express.static("uploads"));
 
 app.get("/", (req, res) => {
