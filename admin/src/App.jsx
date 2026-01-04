@@ -11,7 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 const App = () => {
 
 
-  const url = import.meta.env.VITE_BACKEND_URL;
+  const url = "https://fod-del-backend.onrender.com"
 
   return (
     <div>
